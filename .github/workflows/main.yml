@@ -42,10 +42,10 @@ jobs:
     - name: Execute remote SSH commands
       uses: appleboy/ssh-action@v1
       with:
-        host: ${{ secrets.DC_HOST }}
-        username: ${{ secrets.DC_USER }}
-        password: ${{ secrets.DC_PASS }}
-        port: ${{ secrets.DC_PORT }}
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        password: ${{ secrets.PASSWORD }}
+        port: ${{ secrets.PORT }}
         script: whoami
 
         scp: |
