@@ -30,14 +30,23 @@ jobs:
     - name: Build with Maven
       run: mvn -B package --file pom.xml
 
-    - name: ssh scp ssh pipelines
-      uses: cross-the-world/ssh-scp-ssh-pipelines@latest
+    # - name: ssh scp ssh pipelines
+    #   uses: cross-the-world/ssh-scp-ssh-pipelines@latest
+    #   with:
+    #     host: ${{ secrets.DC_HOST }}
+    #     user: ${{ secrets.DC_USER }}
+    #     pass: ${{ secrets.DC_PASS }}
+    #     port: ${{ secrets.DC_PORT }}
+    #     connect_timeout: 10s
+
+    - name: Execute remote SSH commands
+      uses: appleboy/ssh-action@v1
       with:
         host: ${{ secrets.DC_HOST }}
-        user: ${{ secrets.DC_USER }}
-        pass: ${{ secrets.DC_PASS }}
+        username: ${{ secrets.DC_USER }}
+        password: ${{ secrets.DC_PASS }}
         port: ${{ secrets.DC_PORT }}
-        connect_timeout: 10s
+        script: whoami
 
         scp: |
           ./target/*.war => /tmp/
