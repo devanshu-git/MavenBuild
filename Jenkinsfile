@@ -1,27 +1,35 @@
-node(){
+pipeline {
+  agent any
 
-	def sonarHome = tool name: 'SonarScanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
-	
-	stage('Code Checkout'){
-		checkout changelog: false, poll: false, scm: scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[credentialsId: 'GitHubCreds', url: 'https://github.com/anujdevopslearn/MavenBuild']])
-	}
-	stage('Build Automation'){
-		sh """
-			ls -lart
-			mvn clean install
-			ls -lart target
+  environment {
+    TOMCAT_URL = 'http://192.168.10.50:8080'  // Tomcat base URL
+    WAR_FILE = 'target/sample.war'             // WAR file path after build
+  }
 
-		"""
-	}
-	
-	stage('Code Scan'){
-		withSonarQubeEnv(credentialsId: 'SonarQubeCreds') {
-			sh "${sonarHome}/bin/sonar-scanner"
-		}
-		
-	}
-	
-	stage('Code Deployment'){
-		deploy adapters: [tomcat9(credentialsId: 'TomcatCreds', path: '', url: 'http://54.197.62.94:8080/')], contextPath: 'Planview', onFailure: false, war: 'target/*.war'
-	}
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+
+    stage('Build with Maven') {
+      steps {
+        sh 'mvn clean package -DskipTests'
+      }
+    }
+
+    stage('Deploy to Tomcat') {
+      steps {
+        echo "Deploying ${WAR_FILE} to Tomcat..."
+        deploy adapters: [
+          tomcat9(credentialsId: 'tomcat-credentials', 
+                  path: '', 
+                  url: "${TOMCAT_URL}")
+        ], 
+        contextPath: '/sample', 
+        war: "${WAR_FILE}"
+      }
+    }
+  }
 }
