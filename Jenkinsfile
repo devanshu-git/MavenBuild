@@ -3,6 +3,7 @@ pipeline {
 
   tools {
     maven 'MAVEN_HOME'    // name you configured in Jenkins
+    jdk 'JDK17'
   }
 
   stages {
