@@ -1,34 +1,32 @@
 pipeline {
   agent any
 
-  environment {
-    TOMCAT_URL = 'http://54.74.253.1:8080'  // Tomcat base URL
-    WAR_FILE = 'target/sample.war'             // WAR file path after build
+  tools {
+    maven 'Maven3'    // name you configured in Jenkins
+    jdk 'JDK17'       // optional, if you have a JDK tool configured
   }
 
   stages {
     stage('Checkout') {
-      steps {
-        checkout scm
-      }
+      steps { checkout scm }
     }
 
     stage('Build with Maven') {
       steps {
+        sh 'mvn -version'
         sh 'mvn clean package -DskipTests'
       }
     }
 
     stage('Deploy to Tomcat') {
       steps {
-        echo "Deploying ${WAR_FILE} to Tomcat..."
         deploy adapters: [
-          tomcat9(credentialsId: 'tomcat-credentials', 
-                  path: '', 
-                  url: "${TOMCAT_URL}")
-        ], 
-        contextPath: '/sample', 
-        war: "${WAR_FILE}"
+          tomcat9(credentialsId: 'tomcat-credentials',
+                  path: '',
+                  url: 'http://54.74.253.1:8080')
+        ],
+        contextPath: '/sample',
+        war: 'target/sample.war'
       }
     }
   }
