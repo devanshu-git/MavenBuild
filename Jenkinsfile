@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   environment {
-    TOMCAT_URL = 'http://192.168.10.50:8080'  // Tomcat base URL
+    TOMCAT_URL = 'http://54.74.253.1:8080'  // Tomcat base URL
     WAR_FILE = 'target/sample.war'             // WAR file path after build
   }
 
