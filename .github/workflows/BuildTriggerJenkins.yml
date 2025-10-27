@@ -1,0 +1,49 @@
+name: CI from Github and CD from Jenkins
+
+on:
+  push:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build WAR with Maven
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Build WAR with Maven
+        run: mvn clean package -DskipTests
+
+      - name: Upload WAR as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-war
+          path: target/*.war
+
+  deploy:
+    name: Deploy via Jenkins to Tomcat
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download built WAR artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-war
+          path: ./build
+
+      - name: Trigger Jenkins Job for Deployment
+        run: |
+          echo "Triggering Jenkins deployment..."
+          curl -X POST \
+            -u "${{ secrets.JENKINS_USER }}:${{ secrets.JENKINS_API_TOKEN }}" \
+            "${{ secrets.JENKINS_URL }}/job/deploy-to-tomcat/buildWithParameters?token=GITHUB_TRIGGER&WAR_FILE_NAME=$(basename ./build/*.war)"
