@@ -26,7 +26,7 @@ pipeline {
                   url: 'http://54.74.253.1:8080')
         ],
         contextPath: '/sample',
-        war: 'target/sample.war'
+        war: 'target/*.war'
       }
     }
   }
