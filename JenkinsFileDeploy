@@ -7,18 +7,56 @@ pipeline {
 
   environment {
     TOMCAT_URL = 'http://54.74.253.1:8080'
+    GITHUB_TOKEN = credentials('github-token')          // Jenkins secret for GitHub token
+    GITHUB_OWNER = 'devanshu-git'                  // GitHub org/user name
+    GITHUB_REPO  = 'MavenBuild'                     // GitHub repo name
   }
 
   stages {
     stage('Fetch WAR') {
       steps {
-        echo "Fetching ${params.WAR_FILE_NAME} from GitHub Actions artifact storage (if applicable)"
-        
-        // Option 1: if GitHub pushes the WAR somewhere accessible (e.g., S3, artifact repo)
-        // you could add a wget/curl step here to download it.
+        echo "Fetching ${params.WAR_FILE_NAME} from GitHub Actions artifact storage"
 
-        // For demo purposes, we’ll assume the WAR is already present in Jenkins workspace
-        sh 'ls -lh *.war || echo "No WAR found yet"'
+        script {
+          def artifactName = 'app-war'  // Adjust to your actual artifact name
+
+          // 1. Get artifact ID
+          def artifactIdJson = sh(
+            script: """
+              curl -s -H "Authorization: Bearer ${env.GITHUB_TOKEN}" \\
+                   -H "Accept: application/vnd.github+json" \\
+                   "https://api.github.com/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/artifacts"
+            """,
+            returnStdout: true
+          )
+
+          def artifactId = sh(
+            script: """
+              echo '${artifactIdJson}' | jq -r '.artifacts[] | select(.name=="${artifactName}") | .id' | head -n1
+            """,
+            returnStdout: true
+          ).trim()
+
+          if (!artifactId) {
+            error("Artifact '${artifactName}' not found in GitHub Actions")
+          }
+
+          echo "Artifact ID: ${artifactId}"
+
+          // 2. Download artifact ZIP
+          sh """
+            curl -L -H "Authorization: Bearer ${env.GITHUB_TOKEN}" \\
+                 -H "Accept: application/vnd.github+json" \\
+                 "https://api.github.com/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/artifacts/${artifactId}/zip" \\
+                 -o artifact.zip
+          """
+
+          // 3. Unzip WAR from artifact.zip
+          sh 'unzip -o artifact.zip'
+
+          // 4. Verify WAR file presence
+          sh "ls -lh ${params.WAR_FILE_NAME}"
+        }
       }
     }
 
