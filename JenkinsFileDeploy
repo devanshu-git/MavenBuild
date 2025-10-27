@@ -7,7 +7,7 @@ pipeline {
 
   environment {
     TOMCAT_URL = 'http://54.74.253.1:8080'
-    GITHUB_TOKEN = credentials('github-token')          // Jenkins secret for GitHub token
+    GITHUB_TOKEN = credentials('87cfd4d8-de24-4f1e-9303-9e03f96009b9')          // Jenkins secret for GitHub token
     GITHUB_OWNER = 'devanshu-git'                  // GitHub org/user name
     GITHUB_REPO  = 'MavenBuild'                     // GitHub repo name
   }
