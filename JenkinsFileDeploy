@@ -70,7 +70,7 @@ pipeline {
             url: "${TOMCAT_URL}"
           )
         ],
-        contextPath: '/sample1',
+        contextPath: '/Java-example',
         war: "${params.WAR_FILE_NAME}"
       }
     }
